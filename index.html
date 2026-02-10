@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertex Studio — Agenți Vocali AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* ---------- base ---------- */
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0a2e 0%, #1a1145 25%, #1e1b4b 50%, #172554 75%, #0c1445 100%);
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* ---------- animated bg orbs ---------- */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: .25;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .orb-1 { width: 600px; height: 600px; background: #7c3aed; top: -150px; left: -150px; animation: float1 18s ease-in-out infinite; }
+        .orb-2 { width: 500px; height: 500px; background: #3b82f6; bottom: -100px; right: -100px; animation: float2 22s ease-in-out infinite; }
+        .orb-3 { width: 350px; height: 350px; background: #8b5cf6; top: 50%; left: 50%; transform: translate(-50%, -50%); animation: float3 15s ease-in-out infinite; }
+
+        @keyframes float1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(80px,60px); } }
+        @keyframes float2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-70px,-50px); } }
+        @keyframes float3 { 0%,100% { transform: translate(-50%,-50%) scale(1); } 50% { transform: translate(-40%,-60%) scale(1.15); } }
+
+        /* ---------- glassmorphism ---------- */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        }
+
+        /* ---------- glow ring on input focus ---------- */
+        .phone-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.45), 0 0 20px rgba(139, 92, 246, 0.15);
+            border-color: #8b5cf6;
+        }
+
+        /* ---------- CTA button ---------- */
+        .cta-btn {
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #6d28d9, #2563eb);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .cta-btn:hover::before { opacity: 1; }
+        .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(124, 58, 237, 0.4); }
+        .cta-btn:active { transform: translateY(0); }
+        .cta-btn span { position: relative; z-index: 1; }
+
+        /* ---------- pulse ring on icon ---------- */
+        .pulse-ring {
+            animation: pulse-ring 2.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0%   { transform: scale(0.9); opacity: 0.7; }
+            50%  { transform: scale(1.15); opacity: 0.3; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+
+        /* ---------- fade-in on load ---------- */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeUp 0.8s ease forwards;
+        }
+        .fade-up-delay-1 { animation-delay: 0.15s; }
+        .fade-up-delay-2 { animation-delay: 0.3s; }
+        .fade-up-delay-3 { animation-delay: 0.45s; }
+        .fade-up-delay-4 { animation-delay: 0.6s; }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ---------- success checkmark ---------- */
+        .check-circle {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            display: flex; align-items: center; justify-content: center;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popIn {
+            0%   { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ---------- spinner ---------- */
+        .spinner {
+            width: 22px; height: 22px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ---------- particles ---------- */
+        .particle {
+            position: fixed;
+            width: 3px; height: 3px;
+            background: rgba(139, 92, 246, 0.4);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Background orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- Particles -->
+    <div id="particles"></div>
+
+    <!-- ========== HEADER ========== -->
+    <header class="relative z-10 w-full">
+        <nav class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+            <div class="flex items-center gap-3 fade-up">
+                <!-- Logo icon -->
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shadow-lg shadow-violet-500/20">
+                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white">Vertex Studio</h1>
+                    <p class="text-[11px] font-medium text-violet-300/70 tracking-widest uppercase -mt-0.5">AI Voice Agents</p>
+                </div>
+            </div>
+            <a href="#form-section" class="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-violet-300 hover:text-white transition fade-up fade-up-delay-1 border border-violet-500/20 rounded-full px-5 py-2 hover:border-violet-400/40">
+                Contactează-ne
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </a>
+        </nav>
+    </header>
+
+    <!-- ========== MAIN ========== -->
+    <main class="relative z-10 flex-1 flex items-center justify-center px-4 py-12 sm:py-20">
+        <div class="max-w-4xl w-full flex flex-col items-center text-center">
+
+            <!-- Badge -->
+            <div class="fade-up inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-violet-500/25 bg-violet-500/10 text-violet-300 text-xs font-semibold tracking-wide uppercase mb-8">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                Disponibil 24/7
+            </div>
+
+            <!-- Headline -->
+            <h2 class="fade-up fade-up-delay-1 text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight text-white max-w-3xl">
+                Agenți vocali <span class="bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">inteligenți</span> care vorbesc pentru tine
+            </h2>
+
+            <!-- Sub-headline -->
+            <p class="fade-up fade-up-delay-2 mt-6 text-lg sm:text-xl text-slate-300/80 max-w-2xl leading-relaxed">
+                Automatizează apelurile telefonice cu agenți AI care sună, confirmă programări și califică lead-uri — non-stop, fără pauze, fără erori.
+            </p>
+
+            <!-- Stats row -->
+            <div class="fade-up fade-up-delay-3 mt-10 flex flex-wrap justify-center gap-8 text-center">
+                <div>
+                    <p class="text-3xl font-bold text-white">500<span class="text-violet-400">+</span></p>
+                    <p class="text-sm text-slate-400 mt-1">Apeluri / zi</p>
+                </div>
+                <div class="w-px h-12 bg-white/10 hidden sm:block"></div>
+                <div>
+                    <p class="text-3xl font-bold text-white">98<span class="text-violet-400">%</span></p>
+                    <p class="text-sm text-slate-400 mt-1">Rata de răspuns</p>
+                </div>
+                <div class="w-px h-12 bg-white/10 hidden sm:block"></div>
+                <div>
+                    <p class="text-3xl font-bold text-white">10<span class="text-violet-400">s</span></p>
+                    <p class="text-sm text-slate-400 mt-1">Timp de apel</p>
+                </div>
+            </div>
+
+            <!-- ===== FORM CARD ===== -->
+            <div id="form-section" class="fade-up fade-up-delay-4 mt-14 w-full max-w-lg">
+                <div class="glass rounded-3xl p-8 sm:p-10">
+
+                    <!-- Phone icon -->
+                    <div class="mx-auto mb-6 w-16 h-16 rounded-full bg-gradient-to-br from-violet-600/30 to-blue-600/30 border border-violet-400/20 flex items-center justify-center">
+                        <div class="pulse-ring">
+                            <svg class="w-7 h-7 text-violet-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-bold text-white mb-2">Testează agentul vocal</h3>
+                    <p class="text-slate-400 text-sm mb-8">Introdu numărul tău și vei fi sunat în câteva secunde de agentul nostru AI.</p>
+
+                    <!-- Form -->
+                    <form id="call-form" class="space-y-4" novalidate>
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-slate-300 mb-2 text-left">Număr de telefon</label>
+                            <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-slate-300 font-mono shrink-0 select-none">
+                                    <span class="text-base">🇲🇩</span>
+                                    <span>+373</span>
+                                </div>
+                                <input
+                                    type="tel"
+                                    id="phone"
+                                    name="phone"
+                                    placeholder="6X XXX XXX"
+                                    maxlength="11"
+                                    autocomplete="tel"
+                                    class="phone-input w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-slate-500 font-mono tracking-wider transition-all duration-200"
+                                >
+                            </div>
+                            <p id="phone-error" class="hidden mt-2 text-xs text-rose-400 text-left">Introdu un număr valid (+373 6/7/8XXXXXXX).</p>
+                        </div>
+
+                        <button type="submit" id="submit-btn" class="cta-btn w-full py-4 rounded-xl text-white font-semibold text-base tracking-wide cursor-pointer border-0 flex items-center justify-center gap-2">
+                            <span id="btn-text">Vreau să fiu sunat</span>
+                            <div id="btn-spinner" class="spinner hidden"></div>
+                        </button>
+                    </form>
+
+                    <!-- Success message (hidden by default) -->
+                    <div id="success-msg" class="hidden flex flex-col items-center py-4">
+                        <div class="check-circle mb-4">
+                            <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <p class="text-xl font-bold text-white mb-1">Vă vom suna în 10 secunde!</p>
+                        <p class="text-sm text-slate-400">Pregătește-te să vorbești cu agentul nostru AI.</p>
+                    </div>
+
+                    <!-- Error message (hidden by default) -->
+                    <div id="error-msg" class="hidden mt-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm text-center">
+                        A apărut o eroare. Încearcă din nou.
+                    </div>
+                </div>
+
+                <!-- Trust badges -->
+                <div class="flex items-center justify-center gap-6 mt-6 text-xs text-slate-500">
+                    <div class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-emerald-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+                        Conexiune securizată
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-emerald-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+                        Date protejate
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="relative z-10 border-t border-white/5">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
+            <p>&copy; 2025 Vertex Studio. Toate drepturile rezervate.</p>
+            <div class="flex items-center gap-6">
+                <a href="mailto:contact@vertexstudio.ai" class="hover:text-violet-400 transition">contact@vertexstudio.ai</a>
+                <a href="tel:+37360000000" class="hover:text-violet-400 transition">+373 6X XXX XXX</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script>
+        // ---------- Particles ----------
+        (function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 40; i++) {
+                const p = document.createElement('div');
+                p.classList.add('particle');
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.width = (Math.random() * 3 + 1) + 'px';
+                p.style.height = p.style.width;
+                p.style.opacity = Math.random() * 0.4 + 0.1;
+                p.style.animation = `float${(i % 3) + 1} ${Math.random() * 20 + 15}s ease-in-out infinite`;
+                p.style.animationDelay = (Math.random() * -20) + 's';
+                container.appendChild(p);
+            }
+        })();
+
+        // ---------- Phone validation ----------
+        function sanitizePhone(raw) {
+            return raw.replace(/[\s\-\(\)]/g, '');
+        }
+
+        function isValidMoldovaNumber(digits) {
+            // Accept: 6XXXXXXX, 7XXXXXXX, 8XXXXXXX  (8 digits total)
+            return /^[678]\d{7}$/.test(digits);
+        }
+
+        // ---------- Form handling ----------
+        const form       = document.getElementById('call-form');
+        const phoneInput = document.getElementById('phone');
+        const phoneError = document.getElementById('phone-error');
+        const submitBtn  = document.getElementById('submit-btn');
+        const btnText    = document.getElementById('btn-text');
+        const btnSpinner = document.getElementById('btn-spinner');
+        const successMsg = document.getElementById('success-msg');
+        const errorMsg   = document.getElementById('error-msg');
+
+        // Auto-format as user types
+        phoneInput.addEventListener('input', function () {
+            this.value = this.value.replace(/[^\d\s]/g, '');
+            phoneError.classList.add('hidden');
+            errorMsg.classList.add('hidden');
+        });
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const digits = sanitizePhone(phoneInput.value);
+
+            if (!isValidMoldovaNumber(digits)) {
+                phoneError.classList.remove('hidden');
+                phoneInput.focus();
+                return;
+            }
+
+            const fullNumber = '+373' + digits;
+
+            // UI: loading state
+            btnText.textContent = 'Se trimite...';
+            btnSpinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.7';
+            phoneError.classList.add('hidden');
+            errorMsg.classList.add('hidden');
+
+            try {
+                const res = await fetch('https://YOUR_VPS_IP:3001/api/trigger-call', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: fullNumber }),
+                });
+
+                if (!res.ok) throw new Error('Server error');
+
+                // Show success
+                form.classList.add('hidden');
+                successMsg.classList.remove('hidden');
+
+            } catch (err) {
+                console.error('Call trigger failed:', err);
+                errorMsg.classList.remove('hidden');
+
+                // Reset button
+                btnText.textContent = 'Vreau să fiu sunat';
+                btnSpinner.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+            }
+        });
+
+        // ---------- Smooth scroll for nav link ----------
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        });
+    </script>
+</body>
+</html>
