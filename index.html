@@ -368,7 +368,7 @@
             errorMsg.classList.add('hidden');
 
             try {
-                const res = await fetch('https://57.129.44.195:3001/api/trigger-call', {
+                const res = await fetch('http://57.129.44.195:3001/api/trigger-call', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ phone: fullNumber }),
